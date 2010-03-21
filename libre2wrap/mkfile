@@ -1,0 +1,14 @@
+<../mkconfig
+
+LIB=libre2wrap.a
+
+OFILES=\
+	re2wrap.o\
+
+HFILES=\
+	$ROOT/include/re2wrap.h\
+
+re2wrap.o:
+	g++ -c re2wrap.cc -o re2wrap.o
+
+<$ROOT/mkfiles/mksyslib-$SHELLTYPE
