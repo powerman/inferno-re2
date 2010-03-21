@@ -1,0 +1,48 @@
+TO DO
+=====
+
+Questions
+---------
+- is string2c() and c2string() convert limbo UTF-16 strings to UTF-8
+  expected by re2?
+
+- is where way to provide error message instead of just returning "no match"
+  in case amount of parens less than args[] size?
+  * use NumberOfCapturingGroups() to check?
+
+- how to get regex syntax error? RE2.error() + RE2.error_arg()?
+
+- what exactly mean "3..16 args" comment for PartialMatchN() in re2.h?
+
+- how to use named parens?
+  * use NamedCapturingGroups() to map names to indices?
+
+Planned Features
+----------------
+- add Replace() and GlobalReplace()
+
+- add QuoteMeta()
+
+- add ability to compile regex and use already compiled regex
+  * how to send RE2 type to limbo? or cache it in libre2wrap with some
+    additional API to free unused regex from cache?
+
+- add FindAndConsumeN()
+  * how to keep StringPiece() around limbo's string between calls to
+    FindAndConsumeN()?
+
+Unplanned Features
+------------------
+- add Extract() and PossibleMatchRange()? not sure is them really useful...
+
+- FullMatch(), PartialMatch() support - use N-versions of these
+  functions instead
+
+- FullMatchN() support - why not just use PartialMatch() with ^ and $ ?
+
+- Consume() support - why not just use FindAndConsume() with ^ ?
+
+- return paren's content as non-string type (int, etc.) - ease to
+  convert to wanted type at any time later in limbo
+
+
