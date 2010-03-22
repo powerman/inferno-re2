@@ -3,12 +3,6 @@ TO DO
 
 Questions
 ---------
-- is where way to provide error message instead of just returning "no match"
-  in case amount of parens less than args[] size?
-  * use NumberOfCapturingGroups() to check?
-
-- how to get regex syntax error? RE2.error() + RE2.error_arg()?
-
 - what exactly mean "3..16 args" comment for PartialMatchN() in re2.h?
 
 - how to use named parens?
@@ -19,10 +13,6 @@ Planned Features
 - add Replace() and GlobalReplace()
 
 - add QuoteMeta()
-
-- add ability to compile regex and use already compiled regex
-  * how to send RE2 type to limbo? or cache it in libre2wrap with some
-    additional API to free unused regex from cache?
 
 - add FindAndConsumeN()
   * how to keep StringPiece() around limbo's string between calls to
@@ -41,5 +31,4 @@ Unplanned Features
 
 - return paren's content as non-string type (int, etc.) - ease to
   convert to wanted type at any time later in limbo
-
 

@@ -8,8 +8,8 @@ Re2: module
 # internal
 	RE: adt
 	{
-		x: int;		# dummy for C compiler for runt.h
-		# all the state is hidden
+		parens: int;	
+		# there are some hidden state lurking around
 	};
 
 };

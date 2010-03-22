@@ -2,6 +2,7 @@
 #include <isa.h>
 #include <interp.h>
 #include "runt.h"
+#include "raise.h";
 #include "re2mod.h"
 
 #include "re2wrap.h"
@@ -41,13 +42,14 @@ freeRE(Heap *h, int swept)
 }
 
 Re2_RE*
-mkRE(void* compiled)
+mkRE(void* compiled, int parens)
 {
 	Heap *h;
 	RE* handle;
 
 	h = heap(TRE);
 	handle = H2D(RE*, h);
+	handle->re.parens= parens;
 	handle->compiled = compiled;
 
 	return (Re2_RE*)handle;
@@ -58,11 +60,14 @@ Re2_re(void *fp)
 {
 	F_Re2_re *f = fp;
 	void* compiled;
+	int parens;
 
-	compiled = NewRE(string2c(f->re));
+	compiled = NewRE(string2c(f->re), &parens);
+	if(compiled == NULL)
+	    error(exInval);
 
 	destroy(*f->ret);
-	*f->ret = mkRE(compiled);
+	*f->ret = mkRE(compiled, parens);
 }
 
 void
@@ -87,6 +92,8 @@ Re2_match(void *fp)
 	    return;
 	}
 	if(f->parens != H && f->parens->len > 0){
+	    if(f->parens->len > re->re.parens)
+		error(exInval);
 	    n = f->parens->len;
 	    args = smalloc(n*sizeof(args));
 	}
@@ -98,6 +105,10 @@ Re2_match(void *fp)
 		aofs = (String **)f->parens->data;
 		for(i = 0; i < n; i++){
 		    destroy(aofs[i]);
+		    if(args[i] == NULL){
+			free(args);
+			error(exHeap);
+		    }
 		    aofs[i] = c2string(args[i], strlen(args[i]));
 		    free(args[i]);
 		}
