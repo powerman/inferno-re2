@@ -5,7 +5,7 @@
 using namespace re2;
 
 extern "C"
-int PartialMatchN(const char* text, const char* re, char* c_args[], int argc)
+int PartialMatchN(const char* text, const RE2* re, char* c_args[], int argc)
 {
 	std::string word[argc];
 	RE2::Arg    argv[argc];
@@ -18,7 +18,7 @@ int PartialMatchN(const char* text, const char* re, char* c_args[], int argc)
 	    args[i] = &argv[i];
 	}
 
-	match = RE2::PartialMatchN(text, re, args, argc);
+	match = RE2::PartialMatchN(text, *re, args, argc);
 
 	if(match)
 	    for(i = 0; i < argc; i++){
@@ -28,5 +28,17 @@ int PartialMatchN(const char* text, const char* re, char* c_args[], int argc)
 	    }
 
 	return match;
+}
+
+extern "C"
+RE2* NewRE(const char* re)
+{
+	return new RE2(re);
+}
+
+extern "C"
+void DeleteRE(RE2* pattern)
+{
+	delete pattern;
 }
 
