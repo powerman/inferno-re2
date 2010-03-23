@@ -25,21 +25,21 @@ void DeleteRE(RE2* pattern)
 extern "C"
 int Match(const char* text, const RE2* re, int off[], int end[], int argc)
 {
-	StringPiece s		= text;
+	StringPiece s = text;
 	StringPiece parens[argc];
-	int	    match, i;
+	int match, i;
 
 	match = re->Match(s, 0, RE2::UNANCHORED, parens, argc);
 
 	if(match)
-	    for(i = 0; i < argc; i++)
-		if(parens[i].data() == NULL){ // no match
-		    off[i] = -1;
-		    end[i] = -1;
-		} else { // match empty string if off[i]==end[i]
-		    off[i] = parens[i].data() - s.data();
-		    end[i] = off[i] + parens[i].size();
-		}
+		for(i = 0; i < argc; i++)
+			if(parens[i].data() == NULL){ // no match
+				off[i] = -1;
+				end[i] = -1;
+			} else { // match empty string if off[i]==end[i]
+				off[i] = parens[i].data() - s.data();
+				end[i] = off[i] + parens[i].size();
+			}
 
 	return match;
 }

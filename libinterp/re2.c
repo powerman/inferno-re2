@@ -59,59 +59,59 @@ mkRE(void* compiled, int parens, int capture)
 int
 fixoffend(char* s, int* off, int* end, int n)
 {
-    int l;
-    int *endpos, endq, pos;
-    int nb, nc;
-    int *wait, waitpos;
-    Rune junk;
+	int l;
+	int *endpos, endq, pos;
+	int nb, nc;
+	int *wait, waitpos;
+	Rune junk;
 
-    l	    = strlen(s);
-    endpos  = (int*)smalloc(n*sizeof(int)); // LIFO, value is pos in end[]
-    endq    = 0;			    // amount of queued pos in endpos
-    pos	    = 0;			    // position of offset to fix
-    nb	    = 0;			    // current byte number in s
-    nc	    = 0;			    // current char number in s
-    while(off[pos] == -1 && pos < n)
+	l	= strlen(s);
+	endpos	= (int*)smalloc(n*sizeof(int)); // LIFO, value is pos in end[]
+	endq	= 0;				// amount of queued pos in endpos
+	pos	= 0;				// position of offset to fix
+	nb	= 0;				// current byte number in s
+	nc	= 0;				// current char number in s
+	while(off[pos] == -1 && pos < n)
 	pos++;
-    wait    = off;			    // next value to fix in: off/end
-    waitpos = pos;			    // position of next value to fix in wait
+	wait    = off;				// next value to fix in: off/end
+	waitpos = pos;				// position of next value to fix in wait
 
-    while(pos < n || endq > 0){
-	while(nb != wait[waitpos]) {
-	    if(nb >= l){
-		free(endpos);
-		return -1;
-	    }
-	    nb += chartorune(&junk, s+nb);
-	    nc++;
+	while(pos < n || endq > 0){
+		while(nb != wait[waitpos]) {
+			if(nb >= l){
+				free(endpos);
+				return -1;
+			}
+			nb += chartorune(&junk, s+nb);
+			nc++;
+		}
+		wait[waitpos] = nc;
+
+		if(wait == off){
+			endpos[endq++] = pos++;
+			while(off[pos] == -1 && pos < n)
+				pos++;
+		}
+		else
+			endq--;
+
+		if(pos < n)
+			if(endq > 0 && end[endpos[endq-1]] <= off[pos]){
+				wait = end;
+				waitpos = endpos[endq-1];
+			}
+			else{
+				wait = off;
+				waitpos = pos;
+			}
+		else
+			if(endq > 0){
+				wait = end;
+				waitpos = endpos[endq-1];
+			}
 	}
-	wait[waitpos] = nc;
-
-	if(wait == off){
-	    endpos[endq++] = pos++;
-	    while(off[pos] == -1 && pos < n)
-		pos++;
-	}
-	else
-	    endq--;
-
-	if(pos < n)
-	    if(endq > 0 && end[endpos[endq-1]] <= off[pos]){
-		wait    = end;
-		waitpos = endpos[endq-1];
-	    }
-	    else{
-		wait	= off;
-		waitpos = pos;
-	    }
-	else
-	    if(endq > 0){
-		wait    = end;
-		waitpos = endpos[endq-1];
-	    }
-    }
-    free(endpos);
-    return 0;
+	free(endpos);
+	return 0;
 }
 
 // Public interface
@@ -125,7 +125,7 @@ Re2_re(void *fp)
 
 	compiled = NewRE(string2c(f->re), &parens);
 	if(compiled == NULL)
-	    error(exInval);
+		error(exInval);
 
 	destroy(*f->ret);
 	*f->ret = mkRE(compiled, parens, 1);
@@ -140,45 +140,45 @@ Re2_match(void *fp)
 	RE *re;
 	int *off, *end, n;
 	int is_match, i;
-        Heap *h;
-        Array *a;
+	Heap *h;
+	Array *a;
 	String** match;
 
-	s   = string2c(f->s);
-	re  = (RE*)f->re;
+	s = string2c(f->s);
+	re = (RE*)f->re;
 	if(re == H || D2H(re)->t != TRE)
-	    error(exInval);
-	n   = 1;
+		error(exInval);
+	n = 1;
 	if(re->re.parens > 0 && re->re.capture != 0)
-	    n += re->re.parens;
+		n += re->re.parens;
 	off = (int*)smalloc(n*sizeof(int));
 	end = (int*)smalloc(n*sizeof(int));
 
 	is_match = Match(s, re->compiled, off, end, n);
 
 	if(!is_match){
-	    free(off);
-	    free(end);
-	    destroy(*f->ret);
-	    *f->ret = H;
-	    return;
+		free(off);
+		free(end);
+		destroy(*f->ret);
+		*f->ret = H;
+		return;
 	}
 
 	if(f->s != H && f->s->len < 0)
-	    if(fixoffend(s, off, end, n) < 0){
-		free(off);
-		free(end);
-		error(exRange); // bug in re2 or fixoffend()
-	    }
+		if(fixoffend(s, off, end, n) < 0){
+			free(off);
+			free(end);
+			error(exRange); // bug in re2 or fixoffend()
+		}
 	n--;
 	h = heaparray(&Tptr, n);
 	a = H2D(Array*, h);
 	match = (String**)a->data;
 	for(i = 0; i < n; i++)
-	    if(off[i+1] < 0)
-	        match[i] = H;
-	    else
-		match[i] = slicer(off[i+1], end[i+1], f->s);
+		if(off[i+1] < 0)
+			match[i] = H;
+		else
+			match[i] = slicer(off[i+1], end[i+1], f->s);
 	free(off);
 	free(end);
 	destroy(*f->ret);
