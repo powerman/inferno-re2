@@ -56,10 +56,54 @@ mkRE(void* compiled, int parens, int capture)
 	return (Re2_RE*)handle;
 }
 
-void
+int
 fixoffend(char* s, int* off, int* end, int n)
 {
-    // TODO
+    int l;
+    int *endpos, endq, pos;
+    int nb, nc;
+    int *wait, waitpos;
+    Rune junk;
+
+    l	    = strlen(s);
+    endpos  = (int*)smalloc(n*sizeof(int)); // LIFO, value is pos in end[]
+    endq    = 0;			    // amount of queued pos in endpos
+    pos	    = 0;			    // position of offset to fix
+    nb	    = 0;			    // current byte number in s
+    nc	    = 0;			    // current char number in s
+    wait    = off;			    // next value to fix in: off/end
+    waitpos = pos;			    // position of next value to fix in wait
+
+    while(pos < n || endq > 0){
+	while(nb != wait[waitpos]) {
+	    if(nb >= l){
+		free(endpos);
+		return -1;
+	    }
+	    nb += chartorune(&junk, s+nb);
+	    nc++;
+	}
+	wait[waitpos] = nc;
+	if(wait == off)
+	    endpos[endq++] = pos++;
+	else
+	    endq--;
+	if(pos < n)
+	    if(endq > 0 && end[endpos[endq-1]] <= off[pos]){
+		wait    = end;
+		waitpos = endpos[endq-1];
+	    }
+	    else{
+		wait	= off;
+		waitpos = pos;
+	    }
+	else{
+	    wait    = end;
+	    waitpos = endpos[endq-1];
+	}
+    }
+    free(endpos);
+    return 0;
 }
 
 // Public interface
@@ -112,8 +156,12 @@ Re2_match(void *fp)
 	    return;
 	}
 
-	if(f->s->len < 0)
-	    fixoffend(s, off, end, n);
+	if(f->s != H && f->s->len < 0)
+	    if(fixoffend(s, off, end, n) < 0){
+		free(off);
+		free(end);
+		error(exRange); // bug in re2 or fixoffend()
+	    }
 	n--;
 	h = heaparray(&Tptr, n);
 	a = H2D(Array*, h);
