@@ -10,8 +10,6 @@ Questions
 
 Planned Features
 ----------------
-- add Replace() and GlobalReplace()
-
 - add QuoteMeta()
 
 - add FindAndConsumeN()

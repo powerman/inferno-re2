@@ -56,62 +56,39 @@ mkRE(void* compiled, int parens, int capture)
 	return (Re2_RE*)handle;
 }
 
-int
-fixoffend(char* s, int* off, int* end, int n)
+void
+fixoffsets(char *s, Range *r, int n)
 {
-	int l;
-	int *endpos, endq, pos;
-	int nb, nc;
-	int *wait, waitpos;
+	int **qdata, **q;
+	int ch;
+	int *fix;
+	Range *er;
 	Rune junk;
+	Range *origr = r;
+	char *t;
 
-	l	= strlen(s);
-	endpos	= (int*)smalloc(n*sizeof(int)); // LIFO, value is pos in end[]
-	endq	= 0;				// amount of queued pos in endpos
-	pos	= 0;				// position of offset to fix
-	nb	= 0;				// current byte number in s
-	nc	= 0;				// current char number in s
-	while(off[pos] == -1 && pos < n)
-		pos++;
-	wait    = off;				// next value to fix in: off/end
-	waitpos = pos;				// position of next value to fix in wait
-
-	while(pos < n || endq > 0){
-		while(nb != wait[waitpos]) {
-			if(nb >= l){
-				free(endpos);
-				return -1;
-			}
-			nb += chartorune(&junk, s+nb);
-			nc++;
-		}
-		wait[waitpos] = nc;
-
-		if(wait == off){
-			endpos[endq++] = pos++;
-			while(off[pos] == -1 && pos < n)
-				pos++;
-		}
-		else
-			endq--;
-
-		if(pos < n){
-			if(endq > 0 && end[endpos[endq-1]] <= off[pos]){
-				wait = end;
-				waitpos = endpos[endq-1];
-			}else{
-				wait = off;
-				waitpos = pos;
-			}
-		}else{
-			if(endq > 0){
-				wait = end;
-				waitpos = endpos[endq-1];
-			}
-		}
+	if(n == 0 || r[0].t0 == -1){
+		return;
 	}
-	free(endpos);
-	return 0;
+	qdata = malloc((n+1) * sizeof(int*));
+	q = qdata;
+	er = &r[n];
+	ch = 0;
+	t = s;
+	while(q > qdata || r < er){
+		if(q == qdata || r < er && r->t0 < *q[-1]){
+			*q++ = &r->t1;
+			*q++ = &r->t0;
+			// skip unmatched ranges
+			for(r++; r < er && r->t0 == -1; r++)
+				;
+		}
+ 		fix = *--q;
+ 		ch += utfnlen(t, *fix - (t - s));
+ 		t = s + *fix;
+ 		*fix = ch;
+	}
+	free(qdata);
 }
 
 // Public interface
@@ -138,8 +115,8 @@ Re2_match(void *fp)
 
 	char *s;
 	RE *re;
-	int *off, *end, n;
-	int is_match, i;
+	Range *r;
+	int n, is_match, i;
 	Heap *h;
 	Array *a;
 	String** match;
@@ -148,41 +125,34 @@ Re2_match(void *fp)
 	re = (RE*)f->re;
 	if(re == H || D2H(re)->t != TRE)
 		error(exInval);
-	n = 1;
-	if(re->re.parens > 0 && re->re.capture != 0)
-		n += re->re.parens;
-	off = (int*)smalloc(n*sizeof(int));
-	end = (int*)smalloc(n*sizeof(int));
+	n = 0;
+	if(re->re.parens > 0)
+		n = 1 + re->re.parens;
+	r = (Range*)smalloc(n*sizeof(Range));
 
-	is_match = Match(s, re->compiled, off, end, n);
+	is_match = Match(s, re->compiled, r, n);
 
 	if(!is_match){
-		free(off);
-		free(end);
+		free(r);
 		destroy(*f->ret);
 		*f->ret = H;
 		return;
 	}
 
-	if(f->s != H && f->s->len < 0){
-		if(fixoffend(s, off, end, n) < 0){
-			free(off);
-			free(end);
-			error(exRange); // bug in re2 or fixoffend()
-		}
-	}
-	n--;
+	if(n > 0 && f->s != H && f->s->len < 0)
+		fixoffsets(s, r, n);
+	if(n > 0)
+		n--;
 	h = heaparray(&Tptr, n);
 	a = H2D(Array*, h);
 	match = (String**)a->data;
 	for(i = 0; i < n; i++){
-		if(off[i+1] < 0)
+		if(r[i+1].t0 < 0)
 			match[i] = H;
 		else
-			match[i] = slicer(off[i+1], end[i+1], f->s);
+			match[i] = slicer(r[i+1].t0, r[i+1].t1, f->s);
 	}
-	free(off);
-	free(end);
+	free(r);
 	destroy(*f->ret);
 	*f->ret = a;
 }
@@ -194,7 +164,7 @@ Re2_replace(void *fp)
 
 	char *s, *rewrite, *new;
 	RE *re;
-	int replace;
+	int res;
 	void *tmp;
 
 	s = string2c(f->s);
@@ -202,20 +172,19 @@ Re2_replace(void *fp)
 	re = (RE*)f->re;
 	if(re == H || D2H(re)->t != TRE)
 		error(exInval);
-	// is this really needed?
 	tmp = f->ret->t0;
 	f->ret->t0 = H;
 	destroy(tmp);
 
-	replace = Replace(s, re->compiled, rewrite, &new);
+	res = CheckRewriteString(re->compiled, rewrite);
+	if(res == 0)
+		error(exRange);
+	res = Replace(s, re->compiled, rewrite, &new);
 
-	if(replace < 0){
-		if(replace == -2)
-			error(exRange);
+	if(res < 0)
 		error(exHeap);
-	}
-	f->ret->t1 = replace;
-	if(replace > 0){
+	f->ret->t1 = res;
+	if(res > 0){
 		f->ret->t0 = c2string(new, strlen(new));
 		free(new);
 	}else
@@ -229,7 +198,7 @@ Re2_replaceall(void *fp)
 
 	char *s, *rewrite, *new;
 	RE *re;
-	int replace;
+	int res;
 	void *tmp;
 
 	s = string2c(f->s);
@@ -237,20 +206,19 @@ Re2_replaceall(void *fp)
 	re = (RE*)f->re;
 	if(re == H || D2H(re)->t != TRE)
 		error(exInval);
-	// is this really needed?
 	tmp = f->ret->t0;
 	f->ret->t0 = H;
 	destroy(tmp);
 
-	replace = GlobalReplace(s, re->compiled, rewrite, &new);
+	res = CheckRewriteString(re->compiled, rewrite);
+	if(res == 0)
+		error(exRange);
+	res = GlobalReplace(s, re->compiled, rewrite, &new);
 
-	if(replace < 0){
-		if(replace == -2)
-			error(exRange);
+	if(res < 0)
 		error(exHeap);
-	}
-	f->ret->t1 = replace;
-	if(replace > 0){
+	f->ret->t1 = res;
+	if(res > 0){
 		f->ret->t0 = c2string(new, strlen(new));
 		free(new);
 	}else

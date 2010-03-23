@@ -17,7 +17,7 @@ Re2: module
 
 	RE: adt
 	{
-		parens:	int;  # auto-detected amount of capturing parens
+		parens:	int; # auto-detected amount of capturing parens
 		capture:int; # flag: if false make all parens non-capturing
 		# there are some hidden state lurking around
 	};
