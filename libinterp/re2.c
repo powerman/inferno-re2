@@ -2,7 +2,7 @@
 #include <isa.h>
 #include <interp.h>
 #include "runt.h"
-#include "raise.h";
+#include "raise.h"
 #include "re2mod.h"
 
 #include "re2wrap.h"
@@ -42,18 +42,27 @@ freeRE(Heap *h, int swept)
 }
 
 Re2_RE*
-mkRE(void* compiled, int parens)
+mkRE(void* compiled, int parens, int capture)
 {
 	Heap *h;
 	RE* handle;
 
 	h = heap(TRE);
 	handle = H2D(RE*, h);
-	handle->re.parens= parens;
-	handle->compiled = compiled;
+	handle->re.parens  = parens;
+	handle->re.capture = capture;
+	handle->compiled   = compiled;
 
 	return (Re2_RE*)handle;
 }
+
+void
+fixoffend(char* s, int* off, int* end, int n)
+{
+    // TODO
+}
+
+// Public interface
 
 void
 Re2_re(void *fp)
@@ -67,7 +76,7 @@ Re2_re(void *fp)
 	    error(exInval);
 
 	destroy(*f->ret);
-	*f->ret = mkRE(compiled, parens);
+	*f->ret = mkRE(compiled, parens, 1);
 }
 
 void
@@ -75,48 +84,48 @@ Re2_match(void *fp)
 {
 	F_Re2_match *f = fp;
 
-	char** args;
-	int n = 0;
-	int match;
-
-	char* s;
-	RE* re;
-	String** aofs;
-
-	int i;
+	char *s;
+	RE *re;
+	int *off, *end, n;
+	int is_match, i;
+        Heap *h;
+        Array *a;
+	String** match;
 
 	s   = string2c(f->s);
 	re  = (RE*)f->re;
-	if(re == H || D2H(re)->t != TRE){
-	    *f->ret = 0;
+	if(re == H || D2H(re)->t != TRE)
+	    error(exInval);
+	n   = 1;
+	if(re->re.parens > 0 && re->re.capture != 0)
+	    n += re->re.parens;
+	off = (int*)smalloc(n*sizeof(int));
+	end = (int*)smalloc(n*sizeof(int));
+
+	is_match = Match(s, re->compiled, off, end, n);
+
+	if(!is_match){
+	    free(off);
+	    free(end);
+	    destroy(*f->ret);
+	    *f->ret = H;
 	    return;
 	}
-	if(f->parens != H && f->parens->len > 0){
-	    if(f->parens->len > re->re.parens)
-		error(exInval);
-	    n = f->parens->len;
-	    args = smalloc(n*sizeof(args));
-	}
 
-	match = PartialMatchN(s, re->compiled, args, n);
-
-	if(n > 0){
-	    if(match){
-		aofs = (String **)f->parens->data;
-		for(i = 0; i < n; i++){
-		    destroy(aofs[i]);
-		    if(args[i] == NULL){
-			free(args);
-			error(exHeap);
-		    }
-		    aofs[i] = c2string(args[i], strlen(args[i]));
-		    free(args[i]);
-		}
-	    }
-	    free(args);
-	}
-
-	*f->ret = match;
-	return;
+	if(f->s->len < 0)
+	    fixoffend(s, off, end, n);
+	n--;
+	h = heaparray(&Tptr, n);
+	a = H2D(Array*, h);
+	match = (String**)a->data;
+	for(i = 0; i < n; i++)
+	    if(off[i+1] < 0)
+	        match[i] = H;
+	    else
+		match[i] = slicer(off[i+1], end[i+1], f->s);
+	free(off);
+	free(end);
+	destroy(*f->ret);
+	*f->ret = a;
 }
 
