@@ -71,6 +71,8 @@ fixoffend(char* s, int* off, int* end, int n)
     pos	    = 0;			    // position of offset to fix
     nb	    = 0;			    // current byte number in s
     nc	    = 0;			    // current char number in s
+    while(off[pos] == -1 && pos < n)
+	pos++;
     wait    = off;			    // next value to fix in: off/end
     waitpos = pos;			    // position of next value to fix in wait
 
@@ -84,10 +86,15 @@ fixoffend(char* s, int* off, int* end, int n)
 	    nc++;
 	}
 	wait[waitpos] = nc;
-	if(wait == off)
+
+	if(wait == off){
 	    endpos[endq++] = pos++;
+	    while(off[pos] == -1 && pos < n)
+		pos++;
+	}
 	else
 	    endq--;
+
 	if(pos < n)
 	    if(endq > 0 && end[endpos[endq-1]] <= off[pos]){
 		wait    = end;
@@ -97,10 +104,11 @@ fixoffend(char* s, int* off, int* end, int n)
 		wait	= off;
 		waitpos = pos;
 	    }
-	else{
-	    wait    = end;
-	    waitpos = endpos[endq-1];
-	}
+	else
+	    if(endq > 0){
+		wait    = end;
+		waitpos = endpos[endq-1];
+	    }
     }
     free(endpos);
     return 0;
