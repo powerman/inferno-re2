@@ -64,7 +64,6 @@ fixoffsets(char *s, Range *r, int n)
 	int *fix;
 	Range *er;
 	Rune junk;
-	Range *origr = r;
 	char *t;
 
 	if(n == 0 || r[0].t0 == -1){
@@ -130,7 +129,7 @@ Re2_match(void *fp)
 		n = 1 + re->re.parens;
 	r = (Range*)smalloc(n*sizeof(Range));
 
-	is_match = Match(s, re->compiled, r, n);
+	is_match = Match(s, 0, re->compiled, r, n);
 
 	if(!is_match){
 		free(r);
@@ -151,6 +150,57 @@ Re2_match(void *fp)
 			match[i] = H;
 		else
 			match[i] = slicer(r[i+1].t0, r[i+1].t1, f->s);
+	}
+	free(r);
+	destroy(*f->ret);
+	*f->ret = a;
+}
+
+void
+Re2_matchnext(void *fp)
+{
+	F_Re2_matchnext *f = fp;
+
+	char *s;
+	RE *re;
+	Range *r;
+	int n, is_match, i;
+	Heap *h;
+	Array *a;
+	String** match;
+
+	s = string2c(f->sp->str);
+	re = (RE*)f->re;
+	if(re == H || D2H(re)->t != TRE)
+		error(exInval);
+	n = 1;
+	if(re->re.parens > 0)
+		n += re->re.parens;
+	if(f->sp->pos < 0 || f->sp->pos > strlen(s))
+		error(exRange);
+	r = (Range*)smalloc(n*sizeof(Range));
+
+	is_match = Match(s, f->sp->pos, re->compiled, r, n);
+
+	if(!is_match){
+		free(r);
+		destroy(*f->ret);
+		*f->ret = H;
+		return;
+	}
+
+	f->sp->pos = r[0].t1;
+	if(f->sp->str != H && f->sp->str->len < 0)
+		fixoffsets(s, r, n);
+	n--;
+	h = heaparray(&Tptr, n);
+	a = H2D(Array*, h);
+	match = (String**)a->data;
+	for(i = 0; i < n; i++){
+		if(r[i+1].t0 < 0)
+			match[i] = H;
+		else
+			match[i] = slicer(r[i+1].t0, r[i+1].t1, f->sp->str);
 	}
 	free(r);
 	destroy(*f->ret);
@@ -223,5 +273,22 @@ Re2_replaceall(void *fp)
 		free(new);
 	}else
 		f->ret->t0 = stringdup(f->s);
+}
+
+void
+Re2_quotemeta(void *fp)
+{
+	F_Re2_quotemeta *f = fp;
+
+	char *unquoted, *quoted;
+
+	unquoted = string2c(f->s);
+	quoted = QuoteMeta(unquoted);
+
+	if(quoted == NULL)
+		error(exHeap);
+	destroy(*f->ret);
+	*f->ret = c2string(quoted, strlen(quoted));
+	free(quoted);
 }
 

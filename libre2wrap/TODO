@@ -10,14 +10,14 @@ Questions
 
 Planned Features
 ----------------
-- add QuoteMeta()
-
-- add FindAndConsumeN()
-  * how to keep StringPiece() around limbo's string between calls to
-    FindAndConsumeN()?
 
 Unplanned Features
 ------------------
+- add FindAndConsumeN()
+  * how to keep StringPiece() around limbo's string between calls to
+    FindAndConsumeN()?
+  * is it really needed in addition to current implementation?
+
 - add Extract() and PossibleMatchRange()? not sure is them really useful...
 
 - FullMatch(), PartialMatch() support - use N-versions of these

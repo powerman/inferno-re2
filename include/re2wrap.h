@@ -17,7 +17,9 @@ EXTERN RE2* NewRE(const char*, int*);
 EXTERN void DeleteRE(RE2*);
 EXTERN int CheckRewriteString(const RE2*, const char*);
 
-EXTERN int Match(const char*, const RE2*, Range*, int);
+EXTERN int Match(const char*, int, const RE2*, Range*, int);
 EXTERN int Replace(const char*, const RE2*, const char*, char**);
 EXTERN int GlobalReplace(const char*, const RE2*, const char*, char**);
+
+EXTERN char* QuoteMeta(const char* unquoted);
 

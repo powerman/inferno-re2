@@ -21,13 +21,13 @@ void DeleteRE(RE2* pattern)
 	delete pattern;
 }
 
-int Match(const char* text, const RE2* re, Range r[], int n)
+int Match(const char* text, int pos, const RE2* re, Range r[], int n)
 {
 	StringPiece s = text;
 	StringPiece parens[n];
 	int match, i;
 
-	match = re->Match(s, 0, RE2::UNANCHORED, parens, n);
+	match = re->Match(s, pos, RE2::UNANCHORED, parens, n);
 
 	if(match){
 		for(i = 0; i < n; i++){
@@ -86,5 +86,20 @@ int GlobalReplace(const char* str, const RE2* re, const char* rewrite, char** re
 		*res = newstr;
 	}
 	return replace;
+}
+
+char* QuoteMeta(const char* unquoted)
+{
+	string s;
+	char* quoted;
+	
+	s = RE2::QuoteMeta(unquoted);
+
+	quoted = (char*)malloc(s.size()+1);
+	if(quoted == NULL)
+		return NULL;
+	std::copy(s.begin(), s.end(), quoted);
+	quoted[s.size()] = '\0';
+	return quoted;
 }
 
