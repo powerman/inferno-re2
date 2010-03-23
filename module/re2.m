@@ -12,7 +12,7 @@ Re2: module
 	match:		fn(s: string, re: ref RE): array of string;
 #	matchnext:	fn(s: string, re: ref RE, pos: int): array of string;
 	replace:	fn(s: string, re: ref RE, rewrite: string): (string, int);
-#	replaceall:	fn(s: string, re: ref RE, rewrite: string): int;
+	replaceall:	fn(s: string, re: ref RE, rewrite: string): (string, int);
 #	quotemeta:	fn(s: string): string;
 
 	RE: adt

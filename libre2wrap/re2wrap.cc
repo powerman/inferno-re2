@@ -67,3 +67,24 @@ int Replace(const char* str, const RE2* re, const char* rewrite, char** res)
 	return replace;
 }
 
+extern "C"
+int GlobalReplace(const char* str, const RE2* re, const char* rewrite, char** res)
+{
+	string s;
+	int replace;
+	char *newstr;
+	if(!re->CheckRewriteString(rewrite,&s))
+		return -2;
+	s = str;
+	replace = RE2::GlobalReplace(&s, *re, rewrite);
+	if(replace > 0){
+		newstr = (char*)malloc(s.size()+1);
+		if(newstr == NULL)
+			return -1;
+		std::copy(s.begin(), s.end(), newstr);
+		newstr[s.size()] = '\0';
+		*res = newstr;
+	}
+	return replace;
+}
+

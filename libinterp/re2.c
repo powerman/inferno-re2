@@ -222,3 +222,38 @@ Re2_replace(void *fp)
 		f->ret->t0 = stringdup(f->s);
 }
 
+void
+Re2_replaceall(void *fp)
+{
+	F_Re2_replaceall *f = fp;
+
+	char *s, *rewrite, *new;
+	RE *re;
+	int replace;
+	void *tmp;
+
+	s = string2c(f->s);
+	rewrite = string2c(f->rewrite);
+	re = (RE*)f->re;
+	if(re == H || D2H(re)->t != TRE)
+		error(exInval);
+	// is this really needed?
+	tmp = f->ret->t0;
+	f->ret->t0 = H;
+	destroy(tmp);
+
+	replace = GlobalReplace(s, re->compiled, rewrite, &new);
+
+	if(replace < 0){
+		if(replace == -2)
+			error(exRange);
+		error(exHeap);
+	}
+	f->ret->t1 = replace;
+	if(replace > 0){
+		f->ret->t0 = c2string(new, strlen(new));
+		free(new);
+	}else
+		f->ret->t0 = stringdup(f->s);
+}
+
