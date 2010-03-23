@@ -83,10 +83,10 @@ fixoffsets(char *s, Range *r, int n)
 			for(r++; r < er && r->t0 == -1; r++)
 				;
 		}
- 		fix = *--q;
- 		ch += utfnlen(t, *fix - (t - s));
- 		t = s + *fix;
- 		*fix = ch;
+		fix = *--q;
+		ch += utfnlen(t, *fix - (t - s));
+		t = s + *fix;
+		*fix = ch;
 	}
 	free(qdata);
 }
