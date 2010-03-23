@@ -72,7 +72,7 @@ fixoffend(char* s, int* off, int* end, int n)
 	nb	= 0;				// current byte number in s
 	nc	= 0;				// current char number in s
 	while(off[pos] == -1 && pos < n)
-	pos++;
+		pos++;
 	wait    = off;				// next value to fix in: off/end
 	waitpos = pos;				// position of next value to fix in wait
 
@@ -95,20 +95,20 @@ fixoffend(char* s, int* off, int* end, int n)
 		else
 			endq--;
 
-		if(pos < n)
+		if(pos < n){
 			if(endq > 0 && end[endpos[endq-1]] <= off[pos]){
 				wait = end;
 				waitpos = endpos[endq-1];
-			}
-			else{
+			}else{
 				wait = off;
 				waitpos = pos;
 			}
-		else
+		}else{
 			if(endq > 0){
 				wait = end;
 				waitpos = endpos[endq-1];
 			}
+		}
 	}
 	free(endpos);
 	return 0;
@@ -164,21 +164,23 @@ Re2_match(void *fp)
 		return;
 	}
 
-	if(f->s != H && f->s->len < 0)
+	if(f->s != H && f->s->len < 0){
 		if(fixoffend(s, off, end, n) < 0){
 			free(off);
 			free(end);
 			error(exRange); // bug in re2 or fixoffend()
 		}
+	}
 	n--;
 	h = heaparray(&Tptr, n);
 	a = H2D(Array*, h);
 	match = (String**)a->data;
-	for(i = 0; i < n; i++)
+	for(i = 0; i < n; i++){
 		if(off[i+1] < 0)
 			match[i] = H;
 		else
 			match[i] = slicer(off[i+1], end[i+1], f->s);
+	}
 	free(off);
 	free(end);
 	destroy(*f->ret);

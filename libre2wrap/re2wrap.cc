@@ -31,15 +31,17 @@ int Match(const char* text, const RE2* re, int off[], int end[], int argc)
 
 	match = re->Match(s, 0, RE2::UNANCHORED, parens, argc);
 
-	if(match)
-		for(i = 0; i < argc; i++)
+	if(match){
+		for(i = 0; i < argc; i++){
 			if(parens[i].data() == NULL){ // no match
 				off[i] = -1;
 				end[i] = -1;
-			} else { // match empty string if off[i]==end[i]
+			}else{ // match empty string if off[i]==end[i]
 				off[i] = parens[i].data() - s.data();
 				end[i] = off[i] + parens[i].size();
 			}
+		}
+	}
 
 	return match;
 }
