@@ -1,30 +1,10 @@
-'\" t
-.\"     Title: Re2
-.\"    Author: [FIXME: author] [see http://docbook.sf.net/el/author]
-.\" Generator: DocBook XSL Stylesheets v1.75.2 <http://docbook.sf.net/>
-.\"      Date: 03/24/2010
-.\"    Manual: \ \&
-.\"    Source: \ \&
-.\"  Language: English
-.\"
-.TH "RE2" "2" "03/24/2010" "\ \&" "\ \&"
-.\" -----------------------------------------------------------------
-.\" * set default formatting
-.\" -----------------------------------------------------------------
-.\" disable hyphenation
-.nh
-.\" disable justification (adjust text to left margin only)
-.ad l
-.\" -----------------------------------------------------------------
-.\" * MAIN CONTENT STARTS HERE *
-.\" -----------------------------------------------------------------
-.SH "NAME"
+.TH RE2 2
+.SH NAME
 re2 \- access to regular expression library re2
-.SH "SYNOPSIS"
-.sp
-.nf
-include "re2\&.m";
-re2 = load Re2 Re2\->PATH;
+.SH SYNOPSIS
+.EX
+include "re2.m";
+re2 = load Re2 Re2-&gt;PATH;
 
 compile:    fn(e: string, flag: int): (Re, string);
 execute:    fn(x: Re, s: string): array of (int,int);
@@ -41,109 +21,186 @@ StrPos: adt
         str: string;
         pos: int;
 };
-.fi
-.SH "DESCRIPTION"
-.sp
-Regular expressions are defined by re library (see http://code\&.google\&.com/p/re2/wiki/Syntax)\&.
-.sp
-.if n \{\
-.RS 4
-.\}
-.nf
-.fi
-.if n \{\
-.RE
-.\}
-.sp
-Regex(2)\-compatible interface partially implemented\&. You can found documentation for compile() and execute() in regex(2)\&. If regular expression compiled by compile(\fIre\fR,\fIflag\fR) will be used in match() or matchnext(), \fIflag\fR will have no effect \- capturing parens substrings always will be returned to user\&.
-.sp
-.if n \{\
-.RS 4
-.\}
-.nf
-.fi
-.if n \{\
-.RE
-.\}
-.sp
-re() returns a compiled form of the regular expression given in string \fIre\fR or raise if there are syntax error in regular expression\&. If regular expression compiled by re(\fIre\fR) will be used in execute(), it will work like it was compiled by compile(\fIre\fR,1)\&.
-.sp
-.if n \{\
-.RS 4
-.\}
-.nf
-.fi
-.if n \{\
-.RE
-.\}
-.sp
-match(\fIs\fR,\fIre\fR) matches the compiled regular expression \fIre\fR against string \fIs\fR\&. It returns nil on no match, otherwise it returns an array of string with substrings for all capturing parens\&. If regular expression contains no capturing parens it returns array with 0 elements\&. If some capturing parens match empty string or doesn\(cqt match at all (if they are optional) corresponding array element will be nil\&. If you need to distinguish between optional not matching parens and parens matched empty string you should use execute()\&. Unlike execute(), match() doesn\(cqt automatically include substring for overall \fIre\fR match in 0 element of array \- if you want this behaviour just add capturing parens around all regular expression\&. match() should be faster than execute() in case there no capturing parens in \fIre\fR\&.
-.sp
-.if n \{\
-.RS 4
-.\}
-.nf
-.fi
-.if n \{\
-.RE
-.\}
-.sp
-matchnext(\fIse\fR,\fIre\fR) works in same way as match(\fIse\&.str\fR,\fIre\fR), except it start matching regular expression from position \fIse\&.pos\fR\&. On successful match it will advance \fIse\&.pos\fR value to the first character beyond the match, otherwise it will not change \fIse\&.pos\fR \- this make it ease to use matchnext() in while loop and for trying several regular expression from same position until one of them match\&. WARNING! Currently \fIse\&.pos\fR contain offset in UTF\-8 representation of \fIse\&.str\fR, not character number, so only safe values to initialize StrPos() or to change it is 0 or any values set by previous matchnext() call \- this may change in future\&.
-.sp
-.if n \{\
-.RS 4
-.\}
-.nf
-.fi
-.if n \{\
-.RE
-.\}
-.sp
-replace(\fIs\fR,\fIre\fR,\fIrewrite\fR) will replace first match of \fIre\fR with \fIrewrite\fR and return tuple (\fIs1\fR,\fIis_replaced\fR) where \fIs1\fR modified string, and \fIis_replaced\fR true if \fIre\fR matched and replacement was done\&. If \fIre\fR not match returned \fIs1\fR will be same as \fIs\fR\&. String \fIrewrite\fR may contain references to capturing parens values using \e\e1, \e\e2, etc\&. replace() will raise if \fIrewrite\fR contain \e\en but \fIre\fR has less capturing parens than n or if there syntax error in \fIrewrite\fR (only numbers and \e\e are legal after \e\e)\&.
-.sp
-.if n \{\
-.RS 4
-.\}
-.nf
-.fi
-.if n \{\
-.RE
-.\}
-.sp
-replaceall() works in same way as replace() except it replace all matches and return tuple (\fIs1\fR,\fIhow_many_replaced\fR)\&.
-.sp
-.if n \{\
-.RS 4
-.\}
-.nf
-.fi
-.if n \{\
-.RE
-.\}
-.sp
-quotemeta(\fIs\fR) escapes all potentially meaningful regexp characters in \fIs\fR and return string which can be safely used inside regexp to match exactly that string\&.
-.SH "EXAMPLES"
-.sp
-.if n \{\
-.RS 4
-.\}
-.nf
-match := re2\->match("Hello World", re("(?i)hello\e\es+(\e\ew+)"));
-if(match != nil)
-    sys\->print("captured in first parens: %s\en", match[0]);
 
-compiled := re("\e\eb(\e\ew+)\e\eb");
+.EE
+.SH DESCRIPTION
+.PP
+Regular expressions are defined by re library
+(see 
+.B http://code.google.com/p/re2/wiki/Syntax
+).
+.PP
+.IR "regex(2)"
+compatible interface partially implemented.
+You can found documentation for 
+.B compile
+and 
+.B execute
+in 
+.IR "regex(2)"
+.
+If regular expression compiled by compile(
+.IR "re"
+,
+.IR "flag"
+) will be used in
+.B match
+or 
+.B matchnext
+, 
+.IR "flag"
+will have no effect - capturing parens
+substrings always will be returned to user.
+.PP
+.B re
+returns a compiled form of the regular expression given in string
+.IR "re"
+or raise if there are syntax error in regular expression.
+If regular expression compiled by 
+.B re
+will be used in 
+.B execute
+, it will
+work like it was compiled by 
+.B compile
+with 
+.IR "flag"
+set to 1.
+.PP
+.B match
+matches the compiled regular expression 
+.IR "re"
+against
+string 
+.IR "s"
+. It returns 
+.B nil
+on no match, otherwise it returns an array of
+string with substrings for all capturing parens. If regular expression
+contains no capturing parens it returns array with 0 elements. If some
+capturing parens match empty string or doesn't match at all (if they are
+optional) corresponding array element will be 
+.B nil
+. If you need to
+distinguish between optional not matching parens and parens matched empty
+string you should use 
+.B execute
+. Unlike 
+.B execute
+, 
+.B match
+doesn't
+automatically include substring for overall 
+.IR "re"
+match in 0 element of
+array - if you want this behaviour just add capturing parens around all
+regular expression. 
+.B match
+should be faster than 
+.B execute
+in case there
+no capturing parens in 
+.IR "re"
+.
+.PP
+.B matchnext
+works in same way as 
+.B match
+, except it start matching regular
+expression from position 
+.IR "se.pos"
+. On successful match it will advance
+.IR "se.pos"
+value to the first character beyond the match, otherwise it will
+not change 
+.IR "se.pos"
+- this make it ease to use 
+.B matchnext
+in while loop
+and for trying several regular expression from same position until one of
+them match. 
+.B WARNING!
+Currently 
+.IR "se.pos"
+contain offset in UTF-8
+representation of 
+.IR "se.str"
+, not character number, so only safe values to
+initialize 
+.B StrPos
+or to change it is 0 or any values set by previous
+.B matchnext
+call - this may change in future.
+.PP
+.B replace
+will replace first match of 
+.IR "re"
+with 
+.IR "rewrite"
+and return tuple
+(
+.IR "s1"
+,
+.IR "is_replaced"
+) where 
+.IR "s1"
+modified string, and 
+.IR "is_replaced"
+true if
+.IR "re"
+matched and replacement was done. If 
+.IR "re"
+not match returned 
+.IR "s1"
+will be same as 
+.IR "s"
+. String 
+.IR "rewrite"
+may contain references to capturing
+parens values using \\1, \\2, etc. 
+.B replace
+will raise if 
+.IR "rewrite"
+contain \\n but 
+.IR "re"
+has less capturing parens than n or if there syntax
+error in 
+.IR "rewrite"
+(only numbers and \\ are legal after \\).
+.PP
+.B replaceall
+works in same way as 
+.B replace
+except it replace all matches
+and return tuple (
+.IR "s1"
+,
+.IR "how_many_replaced"
+).
+.PP
+.B quotemeta
+escapes all potentially meaningful regexp characters in 
+.IR "s"
+and return string which can be safely used inside regexp to match exactly
+that string.
+.SH EXAMPLES
+.EX
+match := re2-&gt;match("Hello World", re("(?i)hello\\s+(\\w+)"));
+if(match != nil)
+    sys-&gt;print("captured in first parens: %s\n", match[0]);
+
+compiled := re("\\b(\\w+)\\b");
 sp := ref StrPos("some text here",0);
-while((match = re2\->matchnext(sp, compiled)) != nil){
-    sys\->print("found next word: %s\en", match[0]);
+while((match = re2-&gt;matchnext(sp, compiled)) != nil){
+    sys-&gt;print("found next word: %s\n", match[0]);
 }
-.fi
-.if n \{\
-.RE
-.\}
-.SH "SOURCE"
-.sp
-/libinterp/re2\&.c, /libre2wrap/re2wrap\&.cc
-.SH "SEE ALSO"
-.sp
-regex(2)
+
+.EE
+.SH SOURCE
+.PP
+.B /libinterp/re2.c
+, 
+.B /libre2wrap/re2wrap.cc
+.SH SEE ALSO
+.PP
+.IR "regex(2)"
