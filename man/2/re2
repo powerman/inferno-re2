@@ -4,7 +4,7 @@ re2 \- access to regular expression library re2
 .SH SYNOPSIS
 .EX
 include "re2.m";
-re2 = load Re2 Re2-&gt;PATH;
+re2 = load Re2 Re2->PATH;
 
 compile:    fn(e: string, flag: int): (Re, string);
 execute:    fn(x: Re, s: string): array of (int,int);
@@ -27,52 +27,47 @@ StrPos: adt
 .PP
 Regular expressions are defined by re library
 (see 
-.B http://code.google.com/p/re2/wiki/Syntax
-).
+.BR http://code.google.com/p/re2/wiki/Syntax ).
 .PP
-.IR "regex(2)"
+.IR regex (2)
 compatible interface partially implemented.
 You can found documentation for 
 .B compile
 and 
 .B execute
 in 
-.IR "regex(2)"
-.
-If regular expression compiled by compile(
-.IR "re"
-,
-.IR "flag"
-) will be used in
+.IR regex (2).
+If regular expression compiled by 
+.BI compile( re , flag )
+will be used in
 .B match
 or 
-.B matchnext
-, 
-.IR "flag"
+.BR matchnext ,
+.I flag
 will have no effect - capturing parens
 substrings always will be returned to user.
 .PP
 .B re
 returns a compiled form of the regular expression given in string
-.IR "re"
+.I re
 or raise if there are syntax error in regular expression.
 If regular expression compiled by 
 .B re
 will be used in 
-.B execute
-, it will
+.BR execute ,
+it will
 work like it was compiled by 
 .B compile
 with 
-.IR "flag"
+.I flag
 set to 1.
 .PP
 .B match
 matches the compiled regular expression 
-.IR "re"
+.I re
 against
 string 
-.IR "s"
+.I s
 . It returns 
 .B nil
 on no match, otherwise it returns an array of
@@ -80,18 +75,17 @@ string with substrings for all capturing parens. If regular expression
 contains no capturing parens it returns array with 0 elements. If some
 capturing parens match empty string or doesn't match at all (if they are
 optional) corresponding array element will be 
-.B nil
-. If you need to
+.BR nil .
+If you need to
 distinguish between optional not matching parens and parens matched empty
 string you should use 
-.B execute
-. Unlike 
-.B execute
-, 
+.BR execute .
+Unlike 
+.BR execute ,
 .B match
 doesn't
 automatically include substring for overall 
-.IR "re"
+.I re
 match in 0 element of
 array - if you want this behaviour just add capturing parens around all
 regular expression. 
@@ -100,20 +94,20 @@ should be faster than
 .B execute
 in case there
 no capturing parens in 
-.IR "re"
+.I re
 .
 .PP
 .B matchnext
 works in same way as 
-.B match
-, except it start matching regular
+.BR match ,
+except it start matching regular
 expression from position 
-.IR "se.pos"
+.I se.pos
 . On successful match it will advance
-.IR "se.pos"
+.I se.pos
 value to the first character beyond the match, otherwise it will
 not change 
-.IR "se.pos"
+.I se.pos
 - this make it ease to use 
 .B matchnext
 in while loop
@@ -121,10 +115,10 @@ and for trying several regular expression from same position until one of
 them match. 
 .B WARNING!
 Currently 
-.IR "se.pos"
+.I se.pos
 contain offset in UTF-8
 representation of 
-.IR "se.str"
+.I se.str
 , not character number, so only safe values to
 initialize 
 .B StrPos
@@ -134,38 +128,38 @@ call - this may change in future.
 .PP
 .B replace
 will replace first match of 
-.IR "re"
+.I re
 with 
-.IR "rewrite"
+.I rewrite
 and return tuple
 (
-.IR "s1"
+.I s1
 ,
-.IR "is_replaced"
+.I is_replaced
 ) where 
-.IR "s1"
+.I s1
 modified string, and 
-.IR "is_replaced"
+.I is_replaced
 true if
-.IR "re"
+.I re
 matched and replacement was done. If 
-.IR "re"
+.I re
 not match returned 
-.IR "s1"
+.I s1
 will be same as 
-.IR "s"
+.I s
 . String 
-.IR "rewrite"
+.I rewrite
 may contain references to capturing
 parens values using \\1, \\2, etc. 
 .B replace
 will raise if 
-.IR "rewrite"
+.I rewrite
 contain \\n but 
-.IR "re"
+.I re
 has less capturing parens than n or if there syntax
 error in 
-.IR "rewrite"
+.I rewrite
 (only numbers and \\ are legal after \\).
 .PP
 .B replaceall
@@ -173,34 +167,34 @@ works in same way as
 .B replace
 except it replace all matches
 and return tuple (
-.IR "s1"
+.I s1
 ,
-.IR "how_many_replaced"
+.I how_many_replaced
 ).
 .PP
 .B quotemeta
 escapes all potentially meaningful regexp characters in 
-.IR "s"
+.I s
 and return string which can be safely used inside regexp to match exactly
 that string.
 .SH EXAMPLES
 .EX
-match := re2-&gt;match("Hello World", re("(?i)hello\\s+(\\w+)"));
+match := re2->match("Hello World", re("(?i)hello\\s+(\\w+)"));
 if(match != nil)
-    sys-&gt;print("captured in first parens: %s\n", match[0]);
+    sys->print("captured in first parens: %s\n", match[0]);
 
 compiled := re("\\b(\\w+)\\b");
 sp := ref StrPos("some text here",0);
-while((match = re2-&gt;matchnext(sp, compiled)) != nil){
-    sys-&gt;print("found next word: %s\n", match[0]);
+while((match = re2->matchnext(sp, compiled)) != nil){
+    sys->print("found next word: %s\n", match[0]);
 }
 
 .EE
 .SH SOURCE
 .PP
-.B /libinterp/re2.c
-, 
+.BR /libinterp/re2.c ,
 .B /libre2wrap/re2wrap.cc
 .SH SEE ALSO
 .PP
-.IR "regex(2)"
+.IR regex (2),
+.IR regexp (6)
