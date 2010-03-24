@@ -3,9 +3,11 @@ Re2: module
 	PATH: con "$Re2";
 
 	# regex(2) compatible interface
-#	compile:	fn(e: string, flag: int): (RE, string);
-#	execute:	fn(x: RE; s: string): array of (int,int);
-#	executese:	fn(x: RE, s: string, se: (int, int), bol: int, eol: int): array of (int, int);
+	Re: type ref RE;
+	Range: type (int, int);
+	compile:	fn(e: string, flag: int): (Re, string);
+	execute:	fn(x: Re, s: string): array of Range;
+#	executese:	fn(x: Re, s: string, se: Range, bol: int, eol: int): array of Range;
 
 	# user-friendly interface
 	re:		fn(re: string): ref RE; # throw on bad regexp

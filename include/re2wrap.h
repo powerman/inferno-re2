@@ -15,6 +15,8 @@ struct Range {
 
 EXTERN RE2* NewRE(const char*, int*);
 EXTERN void DeleteRE(RE2*);
+
+EXTERN char* GetPatternError(const char*);
 EXTERN int CheckRewriteString(const RE2*, const char*);
 
 EXTERN int Match(const char*, int, const RE2*, Range*, int);

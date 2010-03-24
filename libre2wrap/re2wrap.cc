@@ -21,6 +21,21 @@ void DeleteRE(RE2* pattern)
 	delete pattern;
 }
 
+char* GetPatternError(const char* re)
+{
+	string s;
+	char* error;
+	RE2 pattern(re);
+
+	s = pattern.error();
+	error = (char*)malloc(s.size()+1);
+	if(error == NULL)
+		return NULL;
+	std::copy(s.begin(), s.end(), error);
+	error[s.size()] = '\0';
+	return error;
+}
+
 int Match(const char* text, int pos, const RE2* re, Range r[], int n)
 {
 	StringPiece s = text;

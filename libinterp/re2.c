@@ -13,6 +13,8 @@
 Type*	TRE;
 uchar	REmap[] = Re2_RE_map;
 void	freeRE(Heap*, int);
+Type*	TRange;
+uchar	Rangemap[] = Re2_Range_map;
 
 typedef struct RE RE;
 struct RE
@@ -28,6 +30,7 @@ re2modinit(void)
 	builtinmod("$Re2", Re2modtab, Re2modlen);
 
 	TRE = dtype(freeRE, sizeof(RE), REmap, sizeof(REmap));
+	TRange = dtype(freeheap, Re2_Range_size, Rangemap, sizeof(Rangemap));
 }
 
 void
@@ -290,5 +293,77 @@ Re2_quotemeta(void *fp)
 	destroy(*f->ret);
 	*f->ret = c2string(quoted, strlen(quoted));
 	free(quoted);
+}
+
+void
+Re2_compile(void *fp)
+{
+	F_Re2_compile *f = fp;
+
+	char *pattern, *errc;
+	void* compiled;
+	int parens;
+	void* tmp;
+
+	tmp = f->ret->t0;
+	f->ret->t0 = H;
+	destroy(tmp);
+	tmp = f->ret->t1;
+	f->ret->t1 = H;
+	destroy(tmp);
+
+	pattern = string2c(f->e);
+	compiled = NewRE(pattern, &parens);
+	if(compiled == NULL){
+		errc = GetPatternError(pattern);
+		if(errc == NULL)
+			error(exHeap);
+		f->ret->t1 = c2string(errc, strlen(errc));
+		free(errc);
+		return;
+	}
+	f->ret->t0 = mkRE(compiled, parens, f->flag);
+}
+
+void
+Re2_execute(void *fp)
+{
+	F_Re2_execute *f = fp;
+
+	char *s;
+	RE *re;
+	Range *r, *rdata;
+	int n, is_match, i;
+	Heap *h;
+	Array *a;
+
+	s = string2c(f->s);
+	re = (RE*)f->x;
+	if(re == H || D2H(re)->t != TRE)
+		error(exInval);
+	n = 1;
+	if(re->re.parens > 0 && re->re.capture == 1)
+		n += re->re.parens;
+	r = (Range*)smalloc(n*sizeof(Range));
+
+	is_match = Match(s, 0, re->compiled, r, n);
+
+	if(!is_match){
+		free(r);
+		destroy(*f->ret);
+		*f->ret = H;
+		return;
+	}
+
+	if(f->s != H && f->s->len < 0)
+		fixoffsets(s, r, n);
+	h = heaparray(TRange, n);
+	a = H2D(Array*, h);
+	rdata = (Range*)a->data;
+	for(i = 0; i < n; i++)
+		rdata[i] = r[i];
+	free(r);
+	destroy(*f->ret);
+	*f->ret = a;
 }
 
