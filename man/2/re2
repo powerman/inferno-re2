@@ -67,9 +67,8 @@ matches the compiled regular expression
 .I re
 against
 string 
-.I s
-.BR "" .
- It returns 
+.IR s .
+It returns 
 .B nil
 on no match, otherwise it returns an array of
 string with substrings for all capturing parens. If regular expression
@@ -95,17 +94,15 @@ should be faster than
 .B execute
 in case there
 no capturing parens in 
-.I re
-.BR "" .
+.IR re .
 .PP
 .B matchnext
 works in same way as 
 .BR match ,
 except it start matching regular
 expression from position 
-.I se.pos
-.BR "" .
- On successful match it will advance
+.IR se.pos .
+On successful match it will advance
 .I se.pos
 value to the first character beyond the match, otherwise it will
 not change 
@@ -120,8 +117,8 @@ Currently
 .I se.pos
 contain offset in UTF-8
 representation of 
-.I se.str
-, not character number, so only safe values to
+.IR se.str ,
+not character number, so only safe values to
 initialize 
 .B StrPos
 or to change it is 0 or any values set by previous
@@ -146,9 +143,8 @@ matched and replacement was done. If
 not match returned 
 .I s1
 will be same as 
-.I s
-.BR "" .
- String 
+.IR s .
+String 
 .I rewrite
 may contain references to capturing
 parens values using \\1, \\2, etc. 
@@ -167,8 +163,7 @@ works in same way as
 .B replace
 except it replace all matches
 and return tuple 
-.BI ( s1 , how_many_replaced )
-.BR "" .
+.BI ( s1 , how_many_replaced ) .
 .PP
 .B quotemeta
 escapes all potentially meaningful regexp characters in 
