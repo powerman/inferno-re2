@@ -185,8 +185,10 @@ while((match = re2->matchnext(sp, compiled)) != nil){
 .EE
 .SH SOURCE
 .PP
-.BR /libinterp/re2.c ,
+.B /libinterp/re2.c*
+.br
 .B /libre2wrap/re2wrap.cc
+.br
 .SH SEE ALSO
 .PP
 .IR regex (2),
