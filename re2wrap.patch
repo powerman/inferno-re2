@@ -9,8 +9,8 @@ diff -r d07fcec5578b emu/Linux/emu
  
  	memlayer
  	memdraw
-@@ -50,6 +51,7 @@
- 	keyring
+@@ -52,6 +53,7 @@
+ 	ipints
  	loader
  	freetype
 +	re2
@@ -28,9 +28,9 @@ diff -r d07fcec5578b emu/Linux/emu-g
  	keyring
  	sec
  	mp
-@@ -38,6 +39,7 @@
- 	srv	srv
- 	keyring
+@@ -40,6 +41,7 @@
+ 	crypt
+ 	ipints
  	loader
 +	re2
  
@@ -43,15 +43,15 @@ diff -r d07fcec5578b emu/Linux/mkfile
  HFILES=\
  
  CFLAGS='-DROOT="'$ROOT'"' -DEMU -I. -I../port -I$ROOT/$SYSTARG/$OBJTYPE/include -I$ROOT/include -I$ROOT/libinterp $CTHREADFLAGS $CFLAGS $EMUOPTIONS
--SYSLIBS= $X11LIBS -lm
-+SYSLIBS= $X11LIBS -lm -lre2 -lstdc++ -lpthread
+-SYSLIBS= $X11LIBS -lm -lrt -lpthread
++SYSLIBS= $X11LIBS -lm -lrt -lpthread -lre2 -lstdc++
  KERNDATE=`{$NDATE}
  
  default:V:	$O.$CONF
 diff -r d07fcec5578b libinterp/mkfile
 --- a/libinterp/mkfile	Sat Mar 13 15:04:35 2010 +0000
 +++ b/libinterp/mkfile	Sun Mar 21 19:56:02 2010 +0200
-@@ -31,6 +31,7 @@
+@@ -32,6 +32,7 @@
  	das-$OBJTYPE.$O\
  	keyring.$O\
  	string.$O\
@@ -59,17 +59,17 @@ diff -r d07fcec5578b libinterp/mkfile
  
  HFILES=\
  	$ROOT/include/interp.h\
-@@ -48,6 +49,7 @@
- 	../module/keyring.m\
- 	../module/loader.m\
- 	../module/freetype.m\
+@@ -52,6 +53,7 @@
+ 	../module/ipints.m\
+ 	../module/crypt.m\
+ 	keyringif.m\
 +	../module/re2.m\
  
  <$ROOT/mkfiles/mksyslib-$SHELLTYPE
  
-@@ -78,6 +80,9 @@
- freetypemod.h:D: $MODULES
- 	rm -f $target && limbo -t Freetype -I../module ../module/runt.m > $target
+@@ -85,6 +87,9 @@
+ ipintsmod.h:D:	$MODULES
+ 	rm -f $target && limbo -t IPints -I../module ../module/ipints.m > $target
  
 +re2mod.h:D: $MODULES
 +	rm -f $target && limbo -t Re2 -I../module ../module/runt.m > $target
@@ -77,7 +77,7 @@ diff -r d07fcec5578b libinterp/mkfile
  benchmod.h:D: ../module/bench.m
  	rm -f $target && limbo -t Bench -I../module ../module/bench.m > $target
  
-@@ -100,6 +105,7 @@
+@@ -115,6 +120,7 @@
  loader.$O:	loadermod.h
  freetype.$O:	freetypemod.h $ROOT/include/freetype.h
  math.$O:	$ROOT/include/mathi.h
@@ -89,7 +89,7 @@ diff -r d07fcec5578b module/runt.m
 --- a/module/runt.m	Sat Mar 13 15:04:35 2010 +0000
 +++ b/module/runt.m	Sun Mar 21 19:56:02 2010 +0200
 @@ -9,3 +9,4 @@
+ include "crypt.m";
  include "loader.m";
- # include "readimage.m";
  include "freetype.m";
 +include "re2.m";
