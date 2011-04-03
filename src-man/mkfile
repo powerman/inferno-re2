@@ -1,0 +1,19 @@
+<$ROOT/mkconfig
+MANINSTDIR=../man/2
+
+MANTARG=\
+	re2\
+
+install:V:	    installman
+
+installman:V:	    ${MANTARG:%=$MANINSTDIR/%}
+
+$MANINSTDIR/%:	    %.txt
+	asciidoc -d manpage -b man $stem.txt
+	mv $stem.man $MANINSTDIR/$stem
+
+nuke:V:		    nuke-man
+
+nuke-man:V:
+	cd $MANINSTDIR; rm -f $MANTARG
+

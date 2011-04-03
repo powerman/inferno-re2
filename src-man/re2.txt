@@ -1,0 +1,107 @@
+Re2(2)
+======
+
+NAME
+----
+re2 - access to regular expression library re2
+
+SYNOPSIS
+--------
+----
+include "re2.m";
+re2 = load Re2 Re2->PATH;
+
+compile:    fn(e: string, flag: int): (Re, string);
+execute:    fn(x: Re, s: string): array of (int,int);
+
+re:         fn(re: string): ref RE;
+match:      fn(s: string, re: ref RE): array of string;
+matchnext:  fn(sp: ref StrPos, re: ref RE): array of string;
+replace:    fn(s: string, re: ref RE, rewrite: string): (string, int);
+replaceall: fn(s: string, re: ref RE, rewrite: string): (string, int);
+quotemeta:  fn(s: string): string;
+
+StrPos: adt
+{
+        str: string;
+        pos: int;
+};
+----
+
+DESCRIPTION
+-----------
+Regular expressions are defined by re library
+(see http://code.google.com/p/re2/wiki/Syntax).
+
+regex(2) compatible interface partially implemented.
+You can found documentation for *compile* and *execute* in regex(2).
+If regular expression compiled by *compile(re,flag)* will be used in
+*match* or *matchnext*, 'flag' will have no effect - capturing parens
+substrings always will be returned to user.
+
+*re* returns a compiled form of the regular expression given in string
+'re' or raise if there are syntax error in regular expression.
+If regular expression compiled by *re* will be used in *execute*, it will
+work like it was compiled by *compile* with 'flag' set to 1.
+
+*match* matches the compiled regular expression 're' against
+string 's'. It returns *nil* on no match, otherwise it returns an array of
+string with substrings for all capturing parens. If regular expression
+contains no capturing parens it returns array with 0 elements. If some
+capturing parens match empty string or doesn't match at all (if they are
+optional) corresponding array element will be *nil*. If you need to
+distinguish between optional not matching parens and parens matched empty
+string you should use *execute*. Unlike *execute*, *match* doesn't
+automatically include substring for overall 're' match in 0 element of
+array - if you want this behaviour just add capturing parens around all
+regular expression. *match* should be faster than *execute* in case there
+no capturing parens in 're'.
+
+*matchnext* works in same way as *match*, except it start matching regular
+expression from position 'se.pos'. On successful match it will advance
+'se.pos' value to the first character beyond the match, otherwise it will
+not change 'se.pos' - this make it ease to use *matchnext* in while loop
+and for trying several regular expression from same position until one of
+them match. *WARNING!* Currently 'se.pos' contain offset in UTF-8
+representation of 'se.str', not character number, so only safe values to
+initialize *StrPos* or to change it is 0 or any values set by previous
+*matchnext* call - this may change in future.
+
+*replace* will replace first match of 're' with 'rewrite' and return tuple
+*(s1,is_replaced)* where 's1' modified string, and 'is_replaced' true if
+'re' matched and replacement was done. If 're' not match returned 's1'
+will be same as 's'. String 'rewrite' may contain references to capturing
+parens values using \\1, \\2, etc. *replace* will raise if 'rewrite'
+contain \\n but 're' has less capturing parens than n or if there syntax
+error in 'rewrite' (only numbers and \\ are legal after \\).
+
+*replaceall* works in same way as *replace* except it replace all matches
+and return tuple *(s1,how_many_replaced)*.
+
+*quotemeta* escapes all potentially meaningful regexp characters in 's'
+and return string which can be safely used inside regexp to match exactly
+that string.
+
+EXAMPLES
+--------
+----
+match := re2->match("Hello World", re("(?i)hello\\s+(\\w+)"));
+if(match != nil)
+    sys->print("captured in first parens: %s\n", match[0]);
+
+compiled := re("\\b(\\w+)\\b");
+sp := ref StrPos("some text here",0);
+while((match = re2->matchnext(sp, compiled)) != nil){
+    sys->print("found next word: %s\n", match[0]);
+}
+----
+
+SOURCE
+------
+`/libinterp/re2.c`
+`/libre2wrap/re2wrap.cc`
+
+SEE ALSO
+--------
+regex(2), regexp(6)
+
