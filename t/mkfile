@@ -1,0 +1,24 @@
+OPT_ROOT=../../../
+<$ROOT/mkconfig
+
+TARG=\
+
+TESTS=\
+	match.dis\
+	match_unicode.dis\
+	matchnext.dis\
+	matchnext_unicode.dis\
+	replace.dis\
+	replaceall.dis\
+	quotemeta.dis\
+	execute.dis\
+
+SYSMODULES=\
+	sys.m\
+	draw.m\
+
+MODULES=\
+	../../module/re2.m\
+
+<$OPT_ROOT/opt/powerman/tap/mktest
+LIMBOFLAGS=$LIMBOFLAGS -I$OPT_ROOT
