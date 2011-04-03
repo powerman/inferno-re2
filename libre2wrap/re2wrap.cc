@@ -36,13 +36,13 @@ char* GetPatternError(const char* re)
 	return error;
 }
 
-int Match(const char* text, int pos, const RE2* re, Range r[], int n)
+int Match(const char* text, int startpos, int endpos, const RE2* re, Range r[], int n)
 {
 	StringPiece s = text;
 	StringPiece parens[n];
 	int match, i;
 
-	match = re->Match(s, pos, RE2::UNANCHORED, parens, n);
+	match = re->Match(s, startpos, endpos, RE2::UNANCHORED, parens, n);
 
 	if(match){
 		for(i = 0; i < n; i++){

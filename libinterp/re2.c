@@ -132,7 +132,7 @@ Re2_match(void *fp)
 		n = 1 + re->re.parens;
 	r = (Range*)smalloc(n*sizeof(Range));
 
-	is_match = Match(s, 0, re->compiled, r, n);
+	is_match = Match(s, 0, strlen(s), re->compiled, r, n);
 
 	if(!is_match){
 		free(r);
@@ -183,7 +183,7 @@ Re2_matchnext(void *fp)
 		error(exRange);
 	r = (Range*)smalloc(n*sizeof(Range));
 
-	is_match = Match(s, f->sp->pos, re->compiled, r, n);
+	is_match = Match(s, f->sp->pos, strlen(s), re->compiled, r, n);
 
 	if(!is_match){
 		free(r);
@@ -346,7 +346,7 @@ Re2_execute(void *fp)
 		n += re->re.parens;
 	r = (Range*)smalloc(n*sizeof(Range));
 
-	is_match = Match(s, 0, re->compiled, r, n);
+	is_match = Match(s, 0, strlen(s), re->compiled, r, n);
 
 	if(!is_match){
 		free(r);
