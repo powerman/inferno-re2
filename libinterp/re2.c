@@ -7,6 +7,8 @@
 
 #include "re2wrap.h"
 
+extern void*   smalloc(size_t);
+
 /*
  * Connecting adt RE to gc
  */
@@ -66,7 +68,6 @@ fixoffsets(char *s, Range *r, int n)
 	int ch;
 	int *fix;
 	Range *er;
-	Rune junk;
 	char *t;
 
 	if(n == 0 || r[0].t0 == -1){
