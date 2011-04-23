@@ -1,5 +1,5 @@
 <$ROOT/mkconfig
-MANINSTDIR=../man/2
+MANINSTDIR=../../../man/2
 
 MANTARG=\
 	re2\

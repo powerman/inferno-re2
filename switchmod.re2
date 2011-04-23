@@ -1,0 +1,116 @@
+#!/usr/bin/perl
+use warnings;
+use strict;
+
+
+edit('libinterp/mkfile' =>
+    var('OFILES',   "\t".'re2.$O'."\\\n"),
+    var('MODULES',  "\t".'../module/re2.m'."\\\n"),
+    line('re2.$O:         re2mod.h', after => qr/^\S*\.\$O:/m),
+    line("\n"
+        .'re2mod.h:D: $MODULES'."\n"
+        ."\t".'rm -f $target && limbo -t Re2 -I../module ../module/runt.m > $target'."\n"
+        ."\n",
+        after => qr/^\S*mod\.h:D(.*\n\t)*/m),
+);
+edit('module/runt.m' =>
+    line('include "re2.m";'),
+);
+edit('emu/Linux/emu' =>
+    proto('lib', 're2wrap'),
+    proto('mod', 're2'),
+);
+edit('emu/Linux/emu-g' =>
+    proto('lib', 're2wrap'),
+    proto('mod', 're2'),
+);
+edit('emu/Linux/mkfile' =>
+    var('SYSLIBS', '-lre2'),
+    var('SYSLIBS', '-lstdc++'),
+);
+
+
+sub var   { return @ARGV && $ARGV[0] eq 'off' ? &var_del   : &var_add   }
+sub line  { return @ARGV && $ARGV[0] eq 'off' ? &line_del  : &line_add  }
+sub proto { return @ARGV && $ARGV[0] eq 'off' ? &proto_del : &proto_add }
+
+sub var_add {
+    my ($var, $val) = @_;
+    $val =~ s/\A(?!\s)/ /;
+    return sub {
+        s/^(\Q$var\E=.*?(?:\\\n.*?)*)\n/$1$val\n/m  or die "failed add var('$var', '$val')\n";
+    }
+}
+
+sub var_del {
+    my ($var, $val) = @_;
+    $val =~ s/\A(?!\s)/ /;
+    return sub {
+        s/^(\Q$var\E=.*(?:\\\n.*)*)\Q$val\E/$1/m    or die "failed del var('$var', '$val')\n";
+    }
+}
+
+sub line_add {
+    my ($s,$pos,$re) = @_;
+    $s =~ s/\s*\z/\n/;
+    if(!defined $pos){
+        $pos = 'after';
+        $re = qr//;
+    }
+    $pos eq 'after'             or die "usage: line('string', after => qr/regex/)\n";
+    my $after = qr/(\A.*$re.*?\n)?/s;
+    return sub {
+        s/($after)/$1$s/   or die "failed add line('$s')\n";
+    }
+}
+
+sub line_del {
+    my ($s) = @_;
+    $s =~ s/\s*\z/\n/;
+    return sub {
+        s/(\A|\n)\Q$s\E/$1/     or die "failed del line('$s')\n";
+    }
+}
+
+sub proto_add {
+    my ($path, $item) = @_;
+    return sub {
+        s/  (
+                    ^\Q$path\E\s*\n
+                (?: ^\s*\n      |
+                    ^\t.*\n     )*?
+            )
+            (?= 
+                (?: ^\s*\n      )*
+                (?: ^\S|\z      )
+            )
+        /$1\t$item\n/xm         or die "failed add proto('$path', '$item')\n";
+    };
+}
+
+sub proto_del {
+    my ($path, $item) = @_;
+    return sub {
+        s/  (
+                    ^\Q$path\E\s*\n
+                (?: ^\s*\n      |
+                    ^\t.*\n     )*?
+            )
+                    ^\t\Q$item\E\s*?\n
+        /$1/xm                  or die "failed del proto('$path', '$item')\n";
+    };
+}
+
+sub edit {
+    my ($file, @code) = @_;
+    open my $f, '<', $file      or die "open <$file: $!\n";
+    { local $/; $_ = <$f> }
+    close $f;
+    for my $code (@code) {
+        $code->();
+    }
+    open $f, '>', $file         or die "open >$file: $!\n";
+    print {$f} $_;
+    close $f;
+}
+
