@@ -1,0 +1,116 @@
+#!/usr/bin/perl
+# Author: Alex Efros <powerman-asdf@yandex.ru>, 2011
+# License: Public Domain
+# 
+# Add text to files based on more flexible rules than supported by patch tool.
+# Will change files only if all files match rules and can be modified.
+# Run with -R option to reverse changes.
+use warnings;
+use strict;
+
+my $MODNAME     = 'Re2';
+my $FILENAME    = lc $MODNAME;
+
+my @PATCH = (
+    [var    => 'libinterp/mkfile',  'OFILES',   "\t$FILENAME.\$O\\\n"],
+    [var    => 'libinterp/mkfile',  'MODULES',  "\t../module/$FILENAME.m\\\n"],
+    [line   => 'libinterp/mkfile',  qr/^\S*\.\$O:/m, "$FILENAME.\$O: ${FILENAME}mod.h"],
+    [line   => 'libinterp/mkfile',  qr/^\S*mod\.h:D(.*\n\t)*/m,
+          "\n"
+        . "${FILENAME}mod.h:D: \$MODULES\n"
+        . "\trm -f \$target && limbo -t $MODNAME -I../module ../module/runt.m > \$target\n"
+        . "\n"],
+    [line   => 'module/runt.m',     qr/.*/s,    "include \"$FILENAME.m\";"],
+    [proto  => 'emu/Linux/emu',     'mod',      $FILENAME],
+    [proto  => 'emu/Linux/emu-g',   'mod',      $FILENAME],
+    # libre2wrap
+    [proto  => 'emu/Linux/emu',     'lib',      're2wrap'],
+    [proto  => 'emu/Linux/emu-g',   'lib',      're2wrap'],
+    [var    => 'emu/Linux/mkfile',  'SYSLIBS',  '-lre2'],
+    [var    => 'emu/Linux/mkfile',  'SYSLIBS',  '-lstdc++'],
+);
+
+
+################################################################################
+
+my $reverse = @ARGV && $ARGV[0] eq '-R';
+my %action  = (
+    var     => $reverse ? \&var_del     : \&var_add,
+    line    => $reverse ? \&line_del    : \&line_add,
+    proto   => $reverse ? \&proto_del   : \&proto_add,
+);
+my %content = ();
+
+for (@PATCH) {
+    my ($act, $file, @params) = @{$_};
+    if (!exists $content{$file}) {
+        open my $f, '<', $file      or die "open <$file: $!\n";
+        local $/;
+        $content{$file} = <$f>;
+        close $f;
+    }
+    $action{$act}->(\$content{$file}, @params)
+        or die 'failed '.($reverse ? 'reverse ' : '').$act.' => '.
+            join(', ', map {"'$_'"} $file, @params)."\n";
+}
+for my $file (keys %content) {
+    open my $f, '>', $file             or die "open >$file: $!\n";
+    print {$f} $content{$file};
+    close $f;
+}
+
+exit;
+
+
+sub var_add {
+    my ($s, $var, $val) = @_;
+    $val =~ s/\A(?!\s)/ /;
+    $$s =~ s/^(\Q$var\E=.*?(?:\\\n.*?)*)\n/$1$val\n/m;
+}
+
+sub var_del {
+    my ($s, $var, $val) = @_;
+    $val =~ s/\A(?!\s)/ /;
+    $$s =~ s/^(\Q$var\E=.*(?:\\\n.*)*)\Q$val\E/$1/m;
+}
+
+sub line_add {
+    my ($s, $re, $line) = @_;
+    $line =~ s/\s*\z/\n/;
+    my $after = qr/(\A.*$re.*?\n)?/s;
+    $$s =~ s/($after)/$1$line/;
+}
+
+sub line_del {
+    my ($s, $re, $line) = @_;
+    $line =~ s/\s*\z/\n/;
+    $$s =~ s/(\A|\n)\Q$line\E/$1/;
+}
+
+sub proto_add {
+    my ($s, $path, $item) = @_;
+    $$s =~ s/
+        (
+                ^\Q$path\E\s*\n
+            (?: ^\s*\n      |
+                ^\t.*\n     )*?
+        )
+        (?= 
+            (?: ^\s*\n      )*
+            (?: ^\S|\z      )
+        )
+    /$1\t$item\n/xm;
+}
+
+sub proto_del {
+    my ($s, $path, $item) = @_;
+    $$s =~ s/
+        (
+                ^\Q$path\E\s*\n
+            (?: ^\s*\n      |
+                ^\t.*\n     )*?
+        )
+                ^\t\Q$item\E\s*?\n
+    /$1/xm;
+}
+
