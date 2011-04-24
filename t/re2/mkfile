@@ -1,4 +1,4 @@
-OPT_ROOT=../../
+OPT_ROOT=$INFERNO_HOME
 <$ROOT/mkconfig
 
 TARG=\
@@ -19,7 +19,7 @@ SYSMODULES=\
 	draw.m\
 
 MODULES=\
-	../module/re2.m\
+	../../module/re2.m\
 
 <$OPT_ROOT/opt/powerman/tap/mktest
 LIMBOFLAGS=$LIMBOFLAGS -I$OPT_ROOT
