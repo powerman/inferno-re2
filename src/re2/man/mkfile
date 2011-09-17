@@ -9,8 +9,14 @@ install:V:	    installman
 installman:V:	    ${MANTARG:%=$MANINSTDIR/%}
 
 $MANINSTDIR/%:	    %.txt
-	asciidoc -d manpage -b man $stem.txt
-	mv $stem.man $MANINSTDIR/$stem
+	if asciidoc --backend list 2>/dev/null | grep -q 9man; then
+	    asciidoc -d manpage -b 9man $stem.txt
+	    mv $stem.man $MANINSTDIR/$stem
+	else
+	    echo Install 9man backend for asciidoc
+	    echo http://powerman.name/asciidoc/
+	    false
+	fi
 
 nuke:V:		    nuke-man
 
