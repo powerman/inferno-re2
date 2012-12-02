@@ -1,0 +1,29 @@
+install:V:		install-man
+
+install-man:V:		${MANTARG:%=$MANINSTDIR/%}
+
+$MANINSTDIR/%:		%.txt-$OSTARG
+	asciidoc -d manpage -b 9man $stem.txt
+	mv $stem.man $MANINSTDIR/$stem
+
+%.txt-Inferno:VQ:	%.txt
+	echo 'Require asciidoc (run mk install in host os)'
+	raise 'not implemented'
+
+%.txt-os:VQ:		%.txt
+	if ! asciidoc 2>/dev/null; then
+	    echo 'Require asciidoc: http://www.methods.co.nz/asciidoc/'
+	    false
+	elif ! asciidoc --backend list 2>/dev/null | grep -q 9man; then
+	    echo 'Require 9man backend for asciidoc: http://powerman.name/asciidoc/'
+	    false
+	fi
+
+nuke:V:			nuke-man
+
+nuke-man:V:
+	cd $MANINSTDIR; rm -f $MANTARG
+
+test:VQ:
+	# no tests
+

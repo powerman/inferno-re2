@@ -1,6 +1,6 @@
 .TH RE2 2
 .SH NAME
-re2 \- access to regular expression library re2
+compile, execute, re, match, matchnext, replace, replaceall, quotemeta, StrPos \- access to regular expression library re2
 .SH SYNOPSIS
 .EX
 include "re2.m";

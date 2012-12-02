@@ -1,13 +1,7 @@
-syntax: glob
-
 # debug
-*.sbl
+\.sbl$
 
-
-syntax: regexp
-
-# build
-appl/.*\.dis
-
-# temp
+# tmp
+\.swp$
 tmp/.*
+
