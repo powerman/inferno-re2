@@ -1,6 +1,6 @@
 .TH RE2 2
 .SH NAME
-compile, execute, re, match, matchnext, replace, replaceall, quotemeta, StrPos \- access to regular expression library re2
+re2: compile, execute, re, match, matchnext, replace, replaceall, quotemeta, StrPos \- access to regular expression library re2
 .SH SYNOPSIS
 .EX
 include "re2.m";
@@ -27,7 +27,7 @@ StrPos: adt
 .PP
 Regular expressions are defined by re library
 (see 
-.BR http://code.google.com/p/re2/wiki/Syntax ).
+.BR https://code.google.com/p/re2/wiki/Syntax ).
 .PP
 .IR regex (2)
 compatible interface partially implemented.
