@@ -172,14 +172,14 @@ and return string which can be safely used inside regexp to match exactly
 that string.
 .SH EXAMPLES
 .EX
-match := re2->match("Hello World", re("(?i)hello\\s+(\\w+)"));
+match := re2->match("Hello World", re("(?i)hello\\\\s+(\\\\w+)"));
 if(match != nil)
-    sys->print("captured in first parens: %s\n", match[0]);
+    sys->print("captured in first parens: %s\\n", match[0]);
 
-compiled := re("\\b(\\w+)\\b");
+compiled := re("\\\\b(\\\\w+)\\\\b");
 sp := ref StrPos("some text here",0);
 while((match = re2->matchnext(sp, compiled)) != nil){
-    sys->print("found next word: %s\n", match[0]);
+    sys->print("found next word: %s\\n", match[0]);
 }
 
 .EE

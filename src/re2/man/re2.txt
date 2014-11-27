@@ -72,9 +72,9 @@ initialize *StrPos* or to change it is 0 or any values set by previous
 *(s1,is_replaced)* where 's1' modified string, and 'is_replaced' true if
 're' matched and replacement was done. If 're' not match returned 's1'
 will be same as 's'. String 'rewrite' may contain references to capturing
-parens values using \\1, \\2, etc. *replace* will raise if 'rewrite'
-contain \\n but 're' has less capturing parens than n or if there syntax
-error in 'rewrite' (only numbers and \\ are legal after \\).
+parens values using \1, \2, etc. *replace* will raise if 'rewrite'
+contain \n but 're' has less capturing parens than n or if there syntax
+error in 'rewrite' (only numbers and \ are legal after \).
 
 *replaceall* works in same way as *replace* except it replace all matches
 and return tuple *(s1,how_many_replaced)*.
