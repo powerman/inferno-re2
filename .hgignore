@@ -1,7 +1,0 @@
-# debug
-\.sbl$
-
-# tmp
-\.swp$
-tmp/.*
-
