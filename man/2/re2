@@ -27,7 +27,7 @@ StrPos: adt
 .PP
 Regular expressions are defined by re library
 (see 
-.BR https://code.google.com/p/re2/wiki/Syntax ).
+.BR https://github.com/google/re2/wiki/Syntax ).
 .PP
 .IR regex (2)
 compatible interface partially implemented.

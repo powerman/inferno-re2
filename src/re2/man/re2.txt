@@ -32,7 +32,7 @@ StrPos: adt
 DESCRIPTION
 -----------
 Regular expressions are defined by re library
-(see https://code.google.com/p/re2/wiki/Syntax).
+(see https://github.com/google/re2/wiki/Syntax).
 
 regex(2) compatible interface partially implemented.
 You can found documentation for *compile* and *execute* in regex(2).
