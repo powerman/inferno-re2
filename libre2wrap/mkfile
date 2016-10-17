@@ -9,6 +9,6 @@ HFILES=\
 	$ROOT/include/re2wrap.h\
 
 re2wrap.o:
-	g++ -I../include -c -m32 re2wrap.cc -o re2wrap.o
+	g++ -I../include -c -m32 -std=c++11 re2wrap.cc -o re2wrap.o
 
 <$ROOT/mkfiles/mksyslib-$SHELLTYPE

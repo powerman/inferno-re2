@@ -29,6 +29,7 @@ my @PATCH = (
     [proto  => 'emu/Linux/emu-g',   'lib',      're2wrap'],
     [var    => 'emu/Linux/mkfile',  'SYSLIBS',  '-lre2'],
     [var    => 'emu/Linux/mkfile',  'SYSLIBS',  '-lstdc++'],
+    [var    => 'emu/Linux/mkfile',  'SYSLIBS',  '-licui18n'],
 );
 
 
